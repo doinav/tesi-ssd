@@ -13,14 +13,9 @@ from pdfminer.high_level import extract_text
 class txtpreprocessing:
     def __init__(self, path):
         self.path = path
-        self.papers = []
-        self.core = [] 
-        self.papers_no_end = []
-        self.ncore = []
-        self.new_txts = []
-        self.cleaned_text = []  
         
     def extract_text(self, path): 
+        papers = []
         for anno in tqdm(os.listdir(self.path)):
             anno_path = os.path.join(self.path, anno)
             if os.path.isdir(anno_path):
@@ -29,22 +24,23 @@ class txtpreprocessing:
                         full_path = os.path.join(anno_path, filename)
                         text = extract_text(full_path)
                         paper = [text]  
-                        self.papers.append(paper)
+                        papers.append(paper)
         
-        return self.papers
+        return papers
     
     
-    def restructure_words(self, wordlist, wordtoreplace):
-        for i, paper in enumerate(self.papers):
+    def restructure_words(self, papers, wordlist, wordtoreplace):
+        papers = []
+        for i, paper in enumerate(papers):
             for j, text in enumerate(paper):
                 for e, word in enumerate(wordlist):
-                    if word in text:
-                        self.papers[j][i] = text.replace(word, wordtoreplace)
+                    if word[e] in text:
+                        papers[i][j] = text.replace(word, wordtoreplace)
         
-        return self.papers
+        return papers
     
-    def extract_core(self, firstword, lastword):
-        for paper in self.papers:
+    def extract_core(self, papers, firstword, lastword):
+        for paper in papers:
             paper_content = [] 
             for text in paper:
                 firstword_index = text.find(firstword)
@@ -63,9 +59,9 @@ class txtpreprocessing:
             if paper_content:  
                 core.append(paper_content)
         
-        return self.core  
+        return core  
     
-    def remove_end_from_txt(self, wordlimit):
+    def remove_end_from_txt(self, core, wordlimit):
         for i, p in enumerate(self.core):
             for j, x in enumerate(p):
                 new_txt = x 
@@ -75,21 +71,21 @@ class txtpreprocessing:
                         new_txt = x[:idx]
                 self.papers_no_end.append([new_txt])
 
-        return self.papers_no_end
+        return papers_no_end
                 
-    def remove_empty_text(self):
+    def remove_empty_text(self, core):
         delete = []
-        for i, paper in enumerate(self.core):
+        for i, paper in enumerate(core):
             for text in paper:
                 if len(text) == 0:
                     print(i)
                     delete.append(text)
         
-        self.ncore = [[txt] for paper in self.core for txt in paper if txt not in delete]
+        ncore = [[txt] for paper in self.core for txt in paper if txt not in delete]
         
-        return self.ncore
+        return ncore
         
-    def remove_patterns(self, patterns):
+    def remove_patterns(self, ncore, patterns):
         for paper in ncore: 
             for txt in paper:
                 new_txt = txt 
@@ -98,10 +94,10 @@ class txtpreprocessing:
                 new_txt = re.sub(r'\s+', ' ', new_txt).strip()
                 new_txts.append([new_txt])
         
-        return self.new_txts
+        return new_txts
    
 
-    def comprehensive_cleaning(self):
+    def comprehensive_cleaning(self, new_txts):
         # replace formatting characters 
         cleaned_text = [[text.replace('\n', ' ').replace('\t', ' ').replace('\x0c', '')] for paper in self.new_txts for text in paper]
         # clean non ascii characters
@@ -129,6 +125,16 @@ class txtpreprocessing:
         # lower case the whole text
         cleaned_text = [[txt.lower()] for paper in cleaned_text for txt in paper]
         
-        self.cleaned_text = cleaned_text
-        return self.cleaned_text
-
+        return cleaned_text
+        
+    def full_preprocessing_workflow(self):
+        self.extract_text()
+        self.restructure_words(papers = [], wordlist=[], wordtoreplace="")  
+        self.extract_core(papers = [], firstword="", lastword="")
+        self.remove_end_from_txt(core = [], wordlimit="")
+        self.remove_empty_text(core = [])
+        self.remove_patterns(ncore = [], patterns = [])
+        self.comprehensive_cleaning(new_txts = [])  
+        
+        
+        
