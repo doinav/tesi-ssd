@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 import pandas as pd
 import os
@@ -15,10 +10,6 @@ from unstructured.cleaners.core import clean_extra_whitespace
 from nltk.corpus import stopwords
 from pdfminer.high_level import extract_text
 
-
-# In[ ]:
-
-
 class txtpreprocessing:
     def __init__(self, path):
         self.path = path
@@ -29,7 +20,7 @@ class txtpreprocessing:
         self.new_txts = []
         self.cleaned_text = []  
         
-    def extract_text(self): 
+    def extract_text(self, path): 
         for anno in tqdm(os.listdir(self.path)):
             anno_path = os.path.join(self.path, anno)
             if os.path.isdir(anno_path):
@@ -75,16 +66,16 @@ class txtpreprocessing:
         return self.core  
     
     def remove_end_from_txt(self, wordlimit):
-    for i, p in enumerate(self.core):
-        for j, x in enumerate(p):
-            new_txt = x 
-            if wordlimit in x:
-                idx = x.index(wordlimit)
-                if idx > len(x) * 0.8:
-                    new_txt = x[:idx]
-            self.papers_no_end.append([new_txt])
+        for i, p in enumerate(self.core):
+            for j, x in enumerate(p):
+                new_txt = x 
+                if wordlimit in x:
+                    idx = x.index(wordlimit)
+                    if idx > len(x) * 0.8:
+                        new_txt = x[:idx]
+                self.papers_no_end.append([new_txt])
 
-    return self.papers_no_end
+        return self.papers_no_end
                 
     def remove_empty_text(self):
         delete = []
@@ -98,7 +89,7 @@ class txtpreprocessing:
         
         return self.ncore
         
-    def remove_patterns(self, patterns -> list):
+    def remove_patterns(self, patterns):
         for paper in ncore: 
             for txt in paper:
                 new_txt = txt 
@@ -109,17 +100,17 @@ class txtpreprocessing:
         
         return self.new_txts
    
-    def comprehensive_cleaning(self):      
+
+    def comprehensive_cleaning(self):
         # replace formatting characters 
-        def replace_formatting_char(self, new_txts, )
-        cleaned_text = [[text.replace('\n', ' ').replace('\t', ' ').replace('\x0c', '')] for paper in new_txts for text in paper]
+        cleaned_text = [[text.replace('\n', ' ').replace('\t', ' ').replace('\x0c', '')] for paper in self.new_txts for text in paper]
         # clean non ascii characters
         cleaned_text = [[clean_non_ascii_chars(text)] for paper in cleaned_text for text in paper]
         # clean unicode text
         cleaned_text = [[replace_unicode_quotes(text)] for paper in cleaned_text for text in paper]
         # remove ip adress
         ip_address = []
-        for paper in core_cl:
+        for paper in cleaned_text:
             for text in paper:
                 address = extract_ip_address(text)
                 if len(address) > 1:
@@ -127,7 +118,7 @@ class txtpreprocessing:
         
         cleaned_text = [[element] for paper in cleaned_text for element in paper if element not in ip_address]
         # remove urls
-        cleaned_text = [[re.sub(r'http\S+|www\.\S+', '', txt) for paper in cleaned_text for txt in paper]
+        cleaned_text = [[re.sub(r'http\S+|www\.\S+', '', txt)] for paper in cleaned_text for txt in paper]
         # remove extra-white-space
         cleaned_text = [[clean_extra_whitespace(text)] for paper in cleaned_text for text in paper]
         # remove punctuation
@@ -138,6 +129,6 @@ class txtpreprocessing:
         # lower case the whole text
         cleaned_text = [[txt.lower()] for paper in cleaned_text for txt in paper]
         
+        self.cleaned_text = cleaned_text
         return self.cleaned_text
-        
 
